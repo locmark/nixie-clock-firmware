@@ -1,5 +1,6 @@
 #include <Arduino.h>
 
+#include "animationDriver.hpp"
 #include "expander.hpp"
 #include "nixie.hpp"
 #include "nixieDefinitions.hpp"
@@ -31,6 +32,13 @@ Nixie nixie4(nixie4Pins, expander);
 Nixie nixie5(nixie5Pins, expander);
 Nixie nixie6(nixie6Pins, expander);
 
+AnimationDriver nixie1animated(expander, nixie1);
+AnimationDriver nixie2animated(expander, nixie2);
+AnimationDriver nixie3animated(expander, nixie3);
+AnimationDriver nixie4animated(expander, nixie4);
+AnimationDriver nixie5animated(expander, nixie5);
+AnimationDriver nixie6animated(expander, nixie6);
+
 void setup() {
     Serial.begin(115200);
 
@@ -41,6 +49,8 @@ void setup() {
 
     Serial.println("[setup] Finished setup");
 }
+
+bool neonState = false;
 
 void loop() {
     NTP_Update();
@@ -58,21 +68,33 @@ void loop() {
     uint8_t secondDigit1 = second / 10;
     uint8_t secondDigit2 = second % 10;
 
-    nixie1.setDigit(hourDigit1);
-    nixie2.setDigit(hourDigit2);
-    nixie3.setDigit(minuteDigit1);
-    nixie4.setDigit(minuteDigit2);
-    nixie5.setDigit(secondDigit1);
-    nixie6.setDigit(secondDigit2);
+    // nixie1.setDigit(hourDigit1);
+    // nixie2.setDigit(hourDigit2);
+    // nixie3.setDigit(minuteDigit1);
+    // nixie4.setDigit(minuteDigit2);
+    // nixie5.setDigit(secondDigit1);
+    // nixie6.setDigit(secondDigit2);
 
-    // nixie1.setDigit(1);
-    // nixie2.setDigit(1);
-    // nixie3.setDigit(1);
-    // nixie4.setDigit(2);
-    // nixie5.setDigit(3);
-    // nixie6.setDigit(4);
+    nixie1animated.setDigit(hourDigit1);
+    nixie2animated.setDigit(hourDigit2);
+    nixie3animated.setDigit(minuteDigit1);
+    nixie4animated.setDigit(minuteDigit2);
+    nixie5animated.setDigit(secondDigit1);
+    nixie6animated.setDigit(secondDigit2);
+
+    nixie1animated.update();
+    nixie2animated.update();
+    nixie3animated.update();
+    nixie4animated.update();
+    nixie5animated.update();
+    nixie6animated.update();
+
+    expander.setOutput(neon1ExpanderPin, neonState ? HIGH : LOW);
+    expander.setOutput(neon2ExpanderPin, neonState ? HIGH : LOW);
+
+    neonState = !neonState;
 
     expander.send();
 
-    delay(200);
+    delay(1);
 }
