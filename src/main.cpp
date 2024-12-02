@@ -1,6 +1,8 @@
 #include <Arduino.h>
 
 #include "animationDriver.hpp"
+#include "buzzer.hpp"
+#include "encoder.hpp"
 #include "expander.hpp"
 #include "nixie.hpp"
 #include "nixieDefinitions.hpp"
@@ -24,6 +26,8 @@ constexpr uint8_t regBlPin = 11;
 constexpr uint8_t regLePin = 3;
 
 Expander expander(regClkPin, regDataPin, regBlPin, regLePin, 64);
+Encoder encoder(encAPin, encBPin, encBtnPin);
+Buzzer buzzer(buzzerPin);
 
 Nixie nixie1(nixie1Pins, expander);
 Nixie nixie2(nixie2Pins, expander);
@@ -44,8 +48,8 @@ void setup() {
 
     Serial.println("[setup] Starting setup");
 
-    WIFI_Init();
-    NTP_Init();
+    // WIFI_Init();
+    // NTP_Init();
 
     Serial.println("[setup] Finished setup");
 }
@@ -53,48 +57,68 @@ void setup() {
 bool neonState = false;
 
 void loop() {
-    NTP_Update();
+    // NTP_Update();
 
-    uint8_t hour = NTP_GetHour();
-    uint8_t minute = NTP_GetMinute();
-    uint8_t second = NTP_GetSecond();
+    // uint8_t hour = NTP_GetHour();
+    // uint8_t minute = NTP_GetMinute();
+    // uint8_t second = NTP_GetSecond();
 
-    uint8_t hourDigit1 = hour / 10;
-    uint8_t hourDigit2 = hour % 10;
+    // uint8_t hourDigit1 = hour / 10;
+    // uint8_t hourDigit2 = hour % 10;
 
-    uint8_t minuteDigit1 = minute / 10;
-    uint8_t minuteDigit2 = minute % 10;
+    // uint8_t minuteDigit1 = minute / 10;
+    // uint8_t minuteDigit2 = minute % 10;
 
-    uint8_t secondDigit1 = second / 10;
-    uint8_t secondDigit2 = second % 10;
+    // uint8_t secondDigit1 = second / 10;
+    // uint8_t secondDigit2 = second % 10;
 
     // nixie1.setDigit(hourDigit1);
     // nixie2.setDigit(hourDigit2);
     // nixie3.setDigit(minuteDigit1);
     // nixie4.setDigit(minuteDigit2);
-    // nixie5.setDigit(secondDigit1);
-    // nixie6.setDigit(secondDigit2);
 
-    nixie1animated.setDigit(hourDigit1);
-    nixie2animated.setDigit(hourDigit2);
-    nixie3animated.setDigit(minuteDigit1);
-    nixie4animated.setDigit(minuteDigit2);
-    nixie5animated.setDigit(secondDigit1);
-    nixie6animated.setDigit(secondDigit2);
+    if (encoder.getPulseCounter() < 10 && encoder.getPulseCounter() > 0) {
+        nixie1.setDigit(encoder.getPulseCounter());
+    } else {
+        nixie1.setDigit(0);
+    }
 
-    nixie1animated.update();
-    nixie2animated.update();
-    nixie3animated.update();
-    nixie4animated.update();
-    nixie5animated.update();
-    nixie6animated.update();
+    if (encoder.getDirection() == 1) {
+        nixie2.setDigit(1);
+    } else if (encoder.getDirection() == -1) {
+        nixie2.setDigit(2);
+    }
+
+    if (encoder.isButtonPushed()) {
+        nixie3.setDigit(1);
+        buzzer.play();
+    } else {
+        nixie3.setDigit(0);
+        buzzer.stop();
+    }
+
+    // nixie1animated.setDigit(hourDigit1);
+    // nixie2animated.setDigit(hourDigit2);
+    // nixie3animated.setDigit(minuteDigit1);
+    // nixie4animated.setDigit(minuteDigit2);
+    // nixie5animated.setDigit(secondDigit1);
+    // nixie6animated.setDigit(secondDigit2);
+
+    // nixie1animated.update();
+    // nixie2animated.update();
+    // nixie3animated.update();
+    // nixie4animated.update();
+    // nixie5animated.update();
+    // nixie6animated.update();
 
     expander.setOutput(neon1ExpanderPin, neonState ? HIGH : LOW);
     expander.setOutput(neon2ExpanderPin, neonState ? HIGH : LOW);
 
     neonState = !neonState;
 
+    encoder.update();
     expander.send();
+    buzzer.update();
 
-    delay(1);
+    // delay(1);
 }

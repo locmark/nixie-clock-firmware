@@ -34,6 +34,9 @@ class Expander {
         digitalWrite(regLePin, LOW);
 
         this->outputs.resize(outputCount);
+        // we want to start with all outputs off
+        this->outputs.assign(outputCount, false);
+        this->send();
     }
 
     void send() {
