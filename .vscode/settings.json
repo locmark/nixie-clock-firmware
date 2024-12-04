@@ -3,6 +3,9 @@
     "editor.formatOnSave": true,
     "files.associations": {
         "vector": "cpp",
-        "initializer_list": "cpp"
+        "initializer_list": "cpp",
+        "array": "cpp",
+        "string": "cpp",
+        "string_view": "cpp"
     }
 }
