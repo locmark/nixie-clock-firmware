@@ -8,11 +8,12 @@
 #define ADC_FUN_A 0.475
 #define ADC_FUN_B -28.774
 
-#define MAX_VOLTAGE 220
-#define MIN_VOLTAGE 130
+#define MAX_VOLTAGE 210
+#define MIN_VOLTAGE 134
+#define OFFSET_VOLTAGE 4
 
 #define POT_ADDRESS 0b0101111
-#define POT_STEPS 128
+#define POT_STEPS 127
 
 class HVConverter {
    private:
@@ -25,15 +26,17 @@ class HVConverter {
 
     int maxRangeOhms = 10000;
     uint32_t measuredVoltage = 0;
+    uint8_t _steps = 0;
 
     void sendPotSteps(uint8_t steps) {
+        _steps = steps;
         Wire.beginTransmission(POT_ADDRESS);
         Wire.write(steps);
         Wire.endTransmission();
     }
 
     int voltageToSteps(uint8_t voltage) {
-        return (voltage - MIN_VOLTAGE) * POT_STEPS / (MAX_VOLTAGE - MIN_VOLTAGE);
+        return (voltage + OFFSET_VOLTAGE - MIN_VOLTAGE) * POT_STEPS / (MAX_VOLTAGE - MIN_VOLTAGE);
     }
 
    public:
@@ -69,5 +72,9 @@ class HVConverter {
 
     int getMeasuredVoltage() {
         return measuredVoltage;
+    }
+
+    int getSteps() {
+        return _steps;
     }
 };
