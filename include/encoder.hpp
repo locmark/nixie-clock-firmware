@@ -15,10 +15,10 @@ class Encoder {
     bool buttonPushed = false;
     bool buttonReleased = false;
 
-    void (*rightCallback)();
-    void (*leftCallback)();
-    void (*switchPressCallback)();
-    void (*switchReleaseCallback)();
+    std::function<void()> rightCallback;
+    std::function<void()> leftCallback;
+    std::function<void()> switchPressCallback;
+    std::function<void()> switchReleaseCallback;
 
    public:
     Encoder(uint8_t pinA, uint8_t pinB, uint8_t switchPin) {
@@ -47,19 +47,19 @@ class Encoder {
         return buttonReleased;
     }
 
-    void setRightCallback(void (*callback)()) {
+    void setRightCallback(std::function<void()> callback) {
         this->rightCallback = callback;
     }
 
-    void setLeftCallback(void (*callback)()) {
+    void setLeftCallback(std::function<void()> callback) {
         this->leftCallback = callback;
     }
 
-    void setSwitchPressCallback(void (*callback)()) {
+    void setSwitchPressCallback(std::function<void()> callback) {
         this->switchPressCallback = callback;
     }
 
-    void setSwitchReleaseCallback(void (*callback)()) {
+    void setSwitchReleaseCallback(std::function<void()> callback) {
         this->switchReleaseCallback = callback;
     }
 

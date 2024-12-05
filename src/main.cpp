@@ -8,6 +8,8 @@
 #include "nixie.hpp"
 #include "nixieDefinitions.hpp"
 #include "ntp.hpp"
+#include "soundController.hpp"
+#include "voltageControler.hpp"
 #include "wifi.hpp"
 
 constexpr uint8_t encAPin = 2;
@@ -34,6 +36,8 @@ Expander expander(regClkPin, regDataPin, regBlPin, regLePin, 64);
 Encoder encoder(encAPin, encBPin, encBtnPin);
 Buzzer buzzer(buzzerPin);
 HVConverter hvConverter(volatgeMeasurePin, digitalPotSDAPin, digitalPotSCLPin);
+// VoltageControler voltageControler(encoder, hvConverter);
+// SoundController soundControler(encoder, buzzer);
 
 Nixie nixie1(nixie1Pins, expander);
 Nixie nixie2(nixie2Pins, expander);
@@ -49,8 +53,6 @@ AnimationDriver nixie4animated(expander, nixie4);
 AnimationDriver nixie5animated(expander, nixie5);
 AnimationDriver nixie6animated(expander, nixie6);
 
-int voltage = 160;
-
 void setup() {
     Serial.begin(115200);
 
@@ -58,26 +60,6 @@ void setup() {
 
     WIFI_Init();
     NTP_Init();
-
-    encoder.setLeftCallback([]() {
-        voltage -= 5;
-
-        if (voltage < 140) {
-            voltage = 140;
-        }
-
-        hvConverter.setVoltage(voltage);
-    });
-
-    encoder.setRightCallback([]() {
-        voltage += 5;
-
-        if (voltage > 200) {
-            voltage = 200;
-        }
-
-        hvConverter.setVoltage(voltage);
-    });
 
     Serial.println("[setup] Finished setup");
 }
@@ -100,34 +82,16 @@ void loop() {
     uint8_t secondDigit1 = second / 10;
     uint8_t secondDigit2 = second % 10;
 
-    // nixie1.setDigit(hourDigit1);
-    // nixie2.setDigit(hourDigit2);
-    // nixie3.setDigit(minuteDigit1);
-    // nixie4.setDigit(minuteDigit2);
+    uint32_t maesuredvoltage = hvConverter.getMeasuredVoltage();
+    // uint32_t desiredvoltage = voltageControler.getDesiredVoltage();
 
-    // uint32_t voltage = hvConverter.getVoltage();
-    // set voltage on nixie tubes from 1 to 6, voltage is 6 digits long
+    // nixie1.setDigit(desiredvoltage / 100);
+    // nixie2.setDigit(desiredvoltage / 10 % 10);
+    // nixie3.setDigit(desiredvoltage % 10);
 
-    // nixie1.setDigit(voltage / 100000);
-    // nixie2.setDigit(voltage / 10000 % 10);
-    // nixie3.setDigit(voltage / 1000 % 10);
-    // nixie4.setDigit(voltage / 100 % 10);
-    // nixie5.setDigit(voltage / 10 % 10);
-    // nixie6.setDigit(voltage % 10);
-
-    // if (encoder.getDirection() == 1) {
-    //     nixie2.setDigit(1);
-    // } else if (encoder.getDirection() == -1) {
-    //     nixie2.setDigit(2);
-    // }
-
-    // if (encoder.isButtonPushed()) {
-    //     nixie3.setDigit(1);
-    //     buzzer.play();
-    // } else {
-    //     nixie3.setDigit(0);
-    //     buzzer.stop();
-    // }
+    nixie4.setDigit(maesuredvoltage / 100);
+    nixie5.setDigit(maesuredvoltage / 10 % 10);
+    nixie6.setDigit(maesuredvoltage % 10);
 
     // nixie1animated.setDigit(hourDigit1);
     // nixie2animated.setDigit(hourDigit2);
@@ -152,6 +116,4 @@ void loop() {
     expander.send();
     hvConverter.update();
     // buzzer.update();
-
-    delay(1);
 }

@@ -1,8 +1,10 @@
 #pragma once
 #include <WiFi.h>
 
-static const char* ssid = "Moria";
-static const char* password = "Barahir6";
+#include "secrets.hpp"
+
+static const char* ssid = wifiSSID;
+static const char* password = wifiPassword;
 
 void WIFI_Init() {
     Serial.println("[wifi] Starting WiFi");

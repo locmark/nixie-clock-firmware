@@ -5,10 +5,14 @@
 
 #include <vector>
 
-#define POT_ADDRESS 0b0101111
+#define ADC_FUN_A 0.475
+#define ADC_FUN_B -28.774
 
-#define ADC_OFFSET 10
-#define ADC_REF_VOLTAGE 3.3
+#define MAX_VOLTAGE 220
+#define MIN_VOLTAGE 130
+
+#define POT_ADDRESS 0b0101111
+#define POT_STEPS 128
 
 class HVConverter {
    private:
@@ -16,27 +20,20 @@ class HVConverter {
     uint8_t digitalPotSDAPin = 48;
     uint8_t digitalPotSCLPin = 47;
 
-    uint8_t dpMaxSteps = 128;
-    uint8_t absoluteMinVoltage = 130;
-    uint8_t absoluteMaxVoltage = 220;
-
-    uint8_t maxVoltageLimit = 200;
-    uint8_t minVoltageLimit = 140;
-
-    int measureVoltageInterval = 100;
+    uint32_t measureVoltageInterval = 1000;
     unsigned long lastIntervalTime = millis();
 
     int maxRangeOhms = 10000;
     uint32_t measuredVoltage = 0;
 
-    void sendData(uint8_t data) {
+    void sendPotSteps(uint8_t steps) {
         Wire.beginTransmission(POT_ADDRESS);
-        Wire.write(data);
+        Wire.write(steps);
         Wire.endTransmission();
     }
 
     int voltageToSteps(uint8_t voltage) {
-        return (voltage - absoluteMinVoltage) * dpMaxSteps / (absoluteMaxVoltage - absoluteMinVoltage);
+        return (voltage - MIN_VOLTAGE) * POT_STEPS / (MAX_VOLTAGE - MIN_VOLTAGE);
     }
 
    public:
@@ -47,21 +44,18 @@ class HVConverter {
 
         pinMode(volatgeMeasurePin, INPUT);
         Wire.begin(digitalPotSDAPin, digitalPotSCLPin, 100000);
+        // fix, on 12 bits resolution measurment beacomse not linear
         analogReadResolution(10);
     }
 
     void setVoltage(uint8_t voltage) {
-        if (voltage < absoluteMinVoltage) {
-            voltage = absoluteMinVoltage;
-        } else if (voltage > absoluteMaxVoltage) {
-            voltage = absoluteMaxVoltage;
-        } else if (voltage > maxVoltageLimit) {
-            voltage = maxVoltageLimit;
-        } else if (voltage < minVoltageLimit) {
-            voltage = minVoltageLimit;
+        if (voltage < MIN_VOLTAGE) {
+            voltage = MIN_VOLTAGE;
+        } else if (voltage > MAX_VOLTAGE) {
+            voltage = MAX_VOLTAGE;
         }
 
-        sendData(voltageToSteps(voltage));
+        sendPotSteps(voltageToSteps(voltage));
     }
 
     void update() {
@@ -69,11 +63,11 @@ class HVConverter {
             return;
         }
 
-        measuredVoltage = int32_t(analogReadMilliVolts(volatgeMeasurePin) * 0.475 - 28.774);
+        measuredVoltage = analogReadMilliVolts(volatgeMeasurePin) * ADC_FUN_A + ADC_FUN_B;
         lastIntervalTime = millis();
     }
 
-    int getVoltage() {
+    int getMeasuredVoltage() {
         return measuredVoltage;
     }
 };
