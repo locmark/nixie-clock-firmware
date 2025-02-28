@@ -5,6 +5,7 @@
 #include "buzzer.hpp"
 #include "encoder.hpp"
 #include "expander.hpp"
+#include "led.hpp"
 #include "melodies.hpp"
 #include "nixie.hpp"
 #include "nixieDefinitions.hpp"
@@ -22,7 +23,8 @@ constexpr uint8_t encBtnPin = 38;
 constexpr uint8_t neon1ExpanderPin = 10;
 constexpr uint8_t neon2ExpanderPin = 52;
 
-constexpr uint8_t ledDataPin = 4;
+// constexpr uint8_t ledDataPin = 4;
+// constexpr uint8_t ledCount = 17;
 
 constexpr uint8_t buzzerPin = 14;
 
@@ -35,6 +37,7 @@ constexpr uint8_t volatgeMeasurePin = 18;
 constexpr uint8_t digitalPotSDAPin = 48;
 constexpr uint8_t digitalPotSCLPin = 47;
 
+LedStrip leds;
 Expander expander(regClkPin, regDataPin, regBlPin, regLePin, 64);
 Encoder encoder(encAPin, encBPin, encBtnPin);
 Buzzer buzzer(buzzerPin);
@@ -105,6 +108,7 @@ void setup() {
 
 void loop() {
     NTP_Update();
+    leds.update();
 
     uint8_t hour = NTP_GetHour();
     uint8_t minute = NTP_GetMinute();
